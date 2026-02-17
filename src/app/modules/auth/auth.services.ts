@@ -143,7 +143,7 @@ const refreshAccessToken = async (refreshToken: string) => {
     try {
         const decoded = jwtHelper.verifyToken(refreshToken, config.jwt_refresh_secret as string);
 
-        const user = await UserModel.findById(decoded._id);
+        const user = await UserModel.findById(decoded._id).select("-password");
         if (!user) throw new ApiError(httpStatus.UNAUTHORIZED, "User not found");
 
         const jwtPayload = {
@@ -156,7 +156,7 @@ const refreshAccessToken = async (refreshToken: string) => {
 
         const accessToken = jwtHelper.generateToken(jwtPayload, config.jwt_access_secret as string, config.jwt_access_expire as string);
 
-        return { accessToken };
+        return { user, accessToken };
     } catch (error) {
         throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid refresh token");
     }
@@ -168,7 +168,7 @@ const requestPasswordReset = async (email: string) => {
 
     // Generate OTP
     const otp = crypto.randomInt(100000, 999999).toString();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
     user.resetPasswordOtp = otp;
     user.resetPasswordOtpExpiry = otpExpiry;
@@ -280,13 +280,33 @@ const updateEmail = async (userId: string, newEmail: string, password: string) =
 
     user.pendingEmail = newEmail;
     user.emailVerificationToken = verificationToken;
-    user.emailVerificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    user.emailVerificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     await user.save();
 
     // Send verification email
     const verificationUrl = `${config.client_url}/verify-new-email?token=${verificationToken}&email=${newEmail}`;
     sendEmailUpdateVerification(newEmail, user.firstName as string, verificationUrl);
+};
+
+const verifyNewEmail = async (token: string, email: string) => {
+    const user = await UserModel.findOne({
+        pendingEmail: email,
+        emailVerificationToken: token,
+        emailVerificationExpiry: { $gt: new Date() },
+    });
+
+    if (!user) throw new ApiError(httpStatus.BAD_REQUEST, "Invalid or expired token");
+
+    // Update email
+    user.email = email;
+    user.pendingEmail = undefined;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpiry = undefined;
+
+    await user.save();
+
+    return { message: "New email verified successfully" };
 };
 
 const setUserPassword = async (userId: string, newPassword: string) => {
@@ -312,5 +332,6 @@ export const authServices = {
     updateProfile,
     changePassword,
     updateEmail,
+    verifyNewEmail,
     setUserPassword,
 };

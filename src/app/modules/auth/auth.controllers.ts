@@ -170,6 +170,18 @@ const updateEmail = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const verifyNewEmail = catchAsync(async (req: Request, res: Response) => {
+    const { token, email } = req.query;
+    await authServices.verifyNewEmail(token as string, email as string);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "New email verified successfully",
+        data: null,
+    });
+});
+
 const setUserPassword = catchAsync(async (req: Request, res: Response) => {
     const userId = req.params.userId as string;
     const { password } = req.body;
@@ -197,5 +209,6 @@ export const authControllers = {
     updateProfile,
     changePassword,
     updateEmail,
+    verifyNewEmail,
     setUserPassword,
 };

@@ -21,6 +21,7 @@ router.post("/logout", auth, authControllers.logout);
 router.patch("/profile", auth, validateRequest(updateProfileSchema), authControllers.updateProfile);
 router.post("/change-password", auth, validateRequest(changePasswordSchema), authControllers.changePassword);
 router.post("/update-email", auth, validateRequest(updateEmailSchema), authControllers.updateEmail);
+router.get("/verify-new-email", authControllers.verifyNewEmail);
 
 // Admin only routes
 router.post("/set-password/:userId", auth, authControllers.setUserPassword);
