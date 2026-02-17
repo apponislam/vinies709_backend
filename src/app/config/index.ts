@@ -20,6 +20,7 @@ export default {
     mail: {
         smtp_host: process.env.SMTP_HOST,
         smtp_port: process.env.SMTP_PORT,
+        smtp_secure: process.env.SMTP_SECURE,
         smtp_user: process.env.SMTP_USER,
         smtp_pass: process.env.SMTP_PASS,
     },
