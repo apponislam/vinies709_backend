@@ -3,6 +3,7 @@ import app from "./app";
 import mongoose from "mongoose";
 import http from "http";
 import config from "./app/config";
+// import { testEmail } from "./utils/testemail";
 
 let server: Server;
 
@@ -10,6 +11,7 @@ async function main() {
     try {
         await mongoose.connect(config.mongodb_url as string);
         server = http.createServer(app);
+        // testEmail();
 
         // initSocket(server);
 

@@ -19,6 +19,7 @@ export const sendMail = (to: string | string[], subject: string, html: string, f
         html,
     };
 
+    // return transporter.sendMail(mailOptions);
     // Process in background
     transporter.sendMail(mailOptions).catch((error: any) => {
         console.error("Email error:", error);
