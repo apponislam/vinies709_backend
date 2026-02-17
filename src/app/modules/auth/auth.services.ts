@@ -5,7 +5,7 @@ import config from "../../config";
 import { UserModel } from "./auth.model";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import { sendOtpEmail } from "../../../utils/emailTemplates";
+import { sendOtpEmail, sendVerificationEmail, sendWelcomeEmail, sendEmailUpdateVerification } from "../../../utils/emailTemplates";
 
 const registerUser = async (data: any) => {
     // Check existing user
@@ -15,14 +15,26 @@ const registerUser = async (data: any) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(data.password, Number(config.bcrypt_salt_rounds));
 
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     // Create user
     const userData = {
         ...data,
         password: hashedPassword,
         isActive: true,
+        isEmailVerified: false,
+        verificationToken,
+        verificationExpiry,
     };
 
     const createdUser = await UserModel.create(userData);
+
+    // Send verification email (background)
+    const verificationUrl = `${config.client_url}/verify-email?token=${verificationToken}&email=${createdUser.email}`;
+    sendVerificationEmail(createdUser.email as string, createdUser.firstName as string, verificationUrl);
+    sendWelcomeEmail(createdUser.email as string, createdUser.firstName as string);
 
     // Generate tokens
     const jwtPayload = {
@@ -34,7 +46,6 @@ const registerUser = async (data: any) => {
     };
 
     const accessToken = jwtHelper.generateToken(jwtPayload, config.jwt_access_secret as string, config.jwt_access_expire as string);
-
     const refreshToken = jwtHelper.generateToken(jwtPayload, config.jwt_refresh_secret as string, config.jwt_refresh_expire as string);
 
     const { password, ...userWithoutPassword } = createdUser.toObject();
@@ -54,6 +65,11 @@ const loginUser = async (data: { email: string; password: string }) => {
     // Check if active
     if (!user.isActive) throw new ApiError(httpStatus.FORBIDDEN, "Account is deactivated");
 
+    // Check if email verified
+    if (!user.isEmailVerified) {
+        throw new ApiError(httpStatus.FORBIDDEN, "Please verify your email first");
+    }
+
     // Update last login
     user.lastLogin = new Date();
     await user.save();
@@ -68,12 +84,51 @@ const loginUser = async (data: { email: string; password: string }) => {
     };
 
     const accessToken = jwtHelper.generateToken(jwtPayload, config.jwt_access_secret as string, config.jwt_access_expire as string);
-
     const refreshToken = jwtHelper.generateToken(jwtPayload, config.jwt_refresh_secret as string, config.jwt_refresh_expire as string);
 
     const { password, ...userWithoutPassword } = user.toObject();
 
     return { user: userWithoutPassword, accessToken, refreshToken };
+};
+
+const verifyEmail = async (token: string, email: string) => {
+    const user = await UserModel.findOne({
+        email,
+        verificationToken: token,
+        verificationExpiry: { $gt: new Date() },
+    });
+
+    if (!user) throw new ApiError(httpStatus.BAD_REQUEST, "Invalid or expired verification token");
+
+    user.isEmailVerified = true;
+    user.verificationToken = undefined;
+    user.verificationExpiry = undefined;
+    await user.save();
+
+    return { message: "Email verified successfully" };
+};
+
+const resendVerificationEmail = async (email: string) => {
+    const user = await UserModel.findOne({ email });
+    if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+
+    if (user.isEmailVerified) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Email already verified");
+    }
+
+    // Generate new verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    user.verificationToken = verificationToken;
+    user.verificationExpiry = verificationExpiry;
+    await user.save();
+
+    // Send verification email
+    const verificationUrl = `${config.client_url}/verify-email?token=${verificationToken}&email=${user.email}`;
+    sendVerificationEmail(user.email as string, user.firstName as string, verificationUrl);
+
+    return { message: "Verification email sent" };
 };
 
 const getUserById = async (userId: string) => {
@@ -119,8 +174,8 @@ const requestPasswordReset = async (email: string) => {
     user.resetPasswordOtpExpiry = otpExpiry;
     await user.save();
 
-    // TODO: Send OTP via email
-    console.log(`Reset OTP for ${email}: ${otp}`);
+    // Send OTP email
+    sendOtpEmail(email, otp, user.firstName as string);
 
     return { message: "OTP sent" };
 };
@@ -229,8 +284,9 @@ const updateEmail = async (userId: string, newEmail: string, password: string) =
 
     await user.save();
 
-    // TODO: Send verification email to new address
-    console.log(`Verify new email for ${userId}: ${verificationToken}`);
+    // Send verification email
+    const verificationUrl = `${config.client_url}/verify-new-email?token=${verificationToken}&email=${newEmail}`;
+    sendEmailUpdateVerification(newEmail, user.firstName as string, verificationUrl);
 };
 
 const setUserPassword = async (userId: string, newPassword: string) => {
@@ -245,6 +301,8 @@ const setUserPassword = async (userId: string, newPassword: string) => {
 export const authServices = {
     registerUser,
     loginUser,
+    verifyEmail,
+    resendVerificationEmail,
     getUserById,
     refreshAccessToken,
     requestPasswordReset,

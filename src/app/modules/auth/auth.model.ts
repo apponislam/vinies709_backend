@@ -18,6 +18,7 @@ const UserSchema = new Schema(
         phone: { type: String },
         location: { type: String },
         isActive: { type: Boolean, default: true },
+        isEmailVerified: { type: Boolean, default: false }, // Added
         lastLogin: { type: Date },
 
         // Password reset fields
@@ -25,6 +26,10 @@ const UserSchema = new Schema(
         resetPasswordOtpExpiry: { type: Date },
         resetPasswordToken: { type: String },
         resetPasswordTokenExpiry: { type: Date },
+
+        // Email verification fields (added)
+        verificationToken: { type: String },
+        verificationExpiry: { type: Date },
 
         // Email update fields
         pendingEmail: { type: String },
@@ -42,6 +47,8 @@ const UserSchema = new Schema(
                 delete retObj.resetPasswordOtpExpiry;
                 delete retObj.resetPasswordToken;
                 delete retObj.resetPasswordTokenExpiry;
+                delete retObj.verificationToken;
+                delete retObj.verificationExpiry;
                 delete retObj.emailVerificationToken;
                 delete retObj.emailVerificationExpiry;
                 return retObj;
@@ -55,6 +62,7 @@ UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ role: 1 });
 UserSchema.index({ isActive: 1 });
 UserSchema.index({ resetPasswordToken: 1 });
+UserSchema.index({ verificationToken: 1 }); // Added
 UserSchema.index({ emailVerificationToken: 1 });
 
 export const UserModel = mongoose.model("User", UserSchema);

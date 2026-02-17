@@ -10,6 +10,7 @@ export interface User {
     phone?: string;
     location?: string;
     isActive: boolean;
+    isEmailVerified: boolean;
     lastLogin?: Date;
 
     // Password reset fields
@@ -17,6 +18,10 @@ export interface User {
     resetPasswordOtpExpiry?: Date;
     resetPasswordToken?: string;
     resetPasswordTokenExpiry?: Date;
+
+    // Email verification fields (new)
+    verificationToken?: string;
+    verificationExpiry?: Date;
 
     // Email update fields
     pendingEmail?: string;

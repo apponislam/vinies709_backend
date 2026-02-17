@@ -19,6 +19,19 @@ export const loginSchema = z.object({
     }),
 });
 
+export const verifyEmailSchema = z.object({
+    query: z.object({
+        token: z.string(),
+        email: z.string().email(),
+    }),
+});
+
+export const resendVerificationSchema = z.object({
+    body: z.object({
+        email: z.string().email(),
+    }),
+});
+
 export const updateProfileSchema = z.object({
     body: z.object({
         firstName: z.string().min(2).optional(),
@@ -44,6 +57,8 @@ export const updateEmailSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>["body"];
 export type LoginInput = z.infer<typeof loginSchema>["body"];
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>["query"];
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>["body"];
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>["body"];
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>["body"];
 export type UpdateEmailInput = z.infer<typeof updateEmailSchema>["body"];
