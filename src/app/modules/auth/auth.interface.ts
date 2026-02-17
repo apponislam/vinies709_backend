@@ -1,0 +1,46 @@
+// export type UserRole = "VENDOR" | "BUYER" | "DRIVER" | "INVENTORY_MANAGER" | "PRICER" | "TREASURER" | "MANAGER" | "CLIENT" | "SALES_AGENT";
+
+// export interface User {
+//     id: string;
+//     email: string;
+//     password: string;
+//     firstName: string;
+//     lastName: string;
+//     role: UserRole;
+//     phone?: string;
+//     location?: string;
+//     isActive: boolean;
+//     createdAt: Date;
+//     updatedAt: Date;
+//     lastLogin?: Date;
+// }
+
+// user.interface.ts
+export type UserRole = "VENDOR" | "BUYER" | "DRIVER" | "INVENTORY_MANAGER" | "PRICER" | "TREASURER" | "MANAGER" | "CLIENT" | "SALES_AGENT";
+
+export interface User {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    role: UserRole;
+    phone?: string;
+    location?: string;
+    isActive: boolean;
+    lastLogin?: Date;
+
+    // Password reset fields
+    resetPasswordOtp?: string;
+    resetPasswordOtpExpiry?: Date;
+    resetPasswordToken?: string;
+    resetPasswordTokenExpiry?: Date;
+
+    // Email update fields
+    pendingEmail?: string;
+    emailVerificationToken?: string;
+    emailVerificationExpiry?: Date;
+
+    createdAt: Date;
+    updatedAt: Date;
+}
