@@ -59,6 +59,17 @@ const verifyEmail = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const resendVerificationEmail = catchAsync(async (req: Request, res: Response) => {
+    await authServices.resendVerificationEmail(req.user.email);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Verification email resent successfully",
+        data: null,
+    });
+});
+
 const getMe = catchAsync(async (req: Request, res: Response) => {
     const user = await authServices.getUserById(req.user._id);
 
@@ -170,6 +181,17 @@ const updateEmail = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const resendEmailUpdate = catchAsync(async (req: Request, res: Response) => {
+    await authServices.resendEmailUpdate(req.user._id, req.body.password);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Email verification resent successfully",
+        data: null,
+    });
+});
+
 const verifyNewEmail = catchAsync(async (req: Request, res: Response) => {
     const { token, email } = req.query;
     await authServices.verifyNewEmail(token as string, email as string);
@@ -199,6 +221,7 @@ export const authControllers = {
     register,
     login,
     verifyEmail,
+    resendVerificationEmail,
     getMe,
     logout,
     refreshAccessToken,
@@ -209,6 +232,7 @@ export const authControllers = {
     updateProfile,
     changePassword,
     updateEmail,
+    resendEmailUpdate,
     verifyNewEmail,
     setUserPassword,
 };

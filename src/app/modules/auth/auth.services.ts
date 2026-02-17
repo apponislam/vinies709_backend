@@ -289,6 +289,32 @@ const updateEmail = async (userId: string, newEmail: string, password: string) =
     sendEmailUpdateVerification(newEmail, user.firstName as string, verificationUrl);
 };
 
+const resendEmailUpdate = async (userId: string, password: string) => {
+    const user = await UserModel.findById(userId);
+    if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+
+    if (!user.pendingEmail) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "No pending email update");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password as string);
+    if (!isPasswordValid) throw new ApiError(httpStatus.BAD_REQUEST, "Password is incorrect");
+
+    // Generate new verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    user.emailVerificationToken = verificationToken;
+    user.emailVerificationExpiry = verificationExpiry;
+    await user.save();
+
+    // Send verification email
+    const verificationUrl = `${config.client_url}/verify-new-email?token=${verificationToken}&email=${user.pendingEmail}`;
+    sendEmailUpdateVerification(user.pendingEmail as string, user.firstName as string, verificationUrl);
+
+    return { message: "Verification email resent" };
+};
+
 const verifyNewEmail = async (token: string, email: string) => {
     const user = await UserModel.findOne({
         pendingEmail: email,
@@ -332,6 +358,7 @@ export const authServices = {
     updateProfile,
     changePassword,
     updateEmail,
+    resendEmailUpdate,
     verifyNewEmail,
     setUserPassword,
 };

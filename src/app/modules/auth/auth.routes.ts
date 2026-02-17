@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authControllers } from "./auth.controllers";
 import validateRequest from "../../middlewares/validateRequest";
-import { changePasswordSchema, loginSchema, registerSchema, updateEmailSchema, updateProfileSchema } from "./auth.validations";
+import { changePasswordSchema, loginSchema, registerSchema, resendEmailUpdateSchema, resendVerificationSchema, updateEmailSchema, updateProfileSchema } from "./auth.validations";
 import auth from "../../middlewares/auth";
 const router = Router();
 
@@ -9,6 +9,7 @@ const router = Router();
 router.post("/register", validateRequest(registerSchema), authControllers.register);
 router.post("/login", validateRequest(loginSchema), authControllers.login);
 router.get("/verify-email", authControllers.verifyEmail);
+router.post("/resend-verification", auth, authControllers.resendVerificationEmail);
 router.post("/refresh-token", authControllers.refreshAccessToken);
 router.post("/forgot-password", authControllers.requestPasswordReset);
 router.post("/verify-otp", authControllers.verifyOtp);
@@ -22,6 +23,7 @@ router.patch("/profile", auth, validateRequest(updateProfileSchema), authControl
 router.post("/change-password", auth, validateRequest(changePasswordSchema), authControllers.changePassword);
 router.post("/update-email", auth, validateRequest(updateEmailSchema), authControllers.updateEmail);
 router.get("/verify-new-email", authControllers.verifyNewEmail);
+router.post("/resend-email-update", auth, validateRequest(resendEmailUpdateSchema), authControllers.resendEmailUpdate);
 
 // Admin only routes
 router.post("/set-password/:userId", auth, authControllers.setUserPassword);

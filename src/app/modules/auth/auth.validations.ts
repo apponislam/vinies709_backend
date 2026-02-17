@@ -41,6 +41,10 @@ export const updateEmailSchema = z.object({
     password: z.string(),
 });
 
+export const resendEmailUpdateSchema = z.object({
+    password: z.string(),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
@@ -48,3 +52,4 @@ export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateEmailInput = z.infer<typeof updateEmailSchema>;
+export type ResendEmailUpdateInput = z.infer<typeof resendEmailUpdateSchema>;

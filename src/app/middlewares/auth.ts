@@ -16,7 +16,7 @@ const auth = catchAsync(async (req: Request, res: Response, next: NextFunction) 
 
     let decoded: jwt.JwtPayload;
     try {
-        decoded = jwt.verify(token, config.jwt_access_secret as string) as { email: string };
+        decoded = jwt.verify(token, config.jwt_access_secret as string) as { _id: string };
     } catch (err: any) {
         if (err.name === "TokenExpiredError") {
             throw new ApiError(401, "Authentication failed: Token expired");
@@ -24,7 +24,7 @@ const auth = catchAsync(async (req: Request, res: Response, next: NextFunction) 
         throw new ApiError(401, "Authentication failed: Invalid token");
     }
 
-    const user = await UserModel.findOne({ email: decoded.email });
+    const user = await UserModel.findOne({ _id: decoded._id });
 
     if (!user) {
         throw new ApiError(404, "Authentication failed: User not found");
