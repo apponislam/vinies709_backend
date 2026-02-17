@@ -51,6 +51,7 @@ const UserSchema = new Schema(
                 delete retObj.verificationExpiry;
                 delete retObj.emailVerificationToken;
                 delete retObj.emailVerificationExpiry;
+                delete retObj.pendingEmail;
                 return retObj;
             },
         },

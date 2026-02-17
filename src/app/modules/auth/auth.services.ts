@@ -31,7 +31,6 @@ const registerUser = async (data: any) => {
 
     const createdUser = await UserModel.create(userData);
 
-    // Send verification email (background)
     const verificationUrl = `${config.client_url}/verify-email?token=${verificationToken}&email=${createdUser.email}`;
     sendVerificationEmail(createdUser.email as string, createdUser.firstName as string, verificationUrl);
     sendWelcomeEmail(createdUser.email as string, createdUser.firstName as string);
@@ -48,9 +47,10 @@ const registerUser = async (data: any) => {
     const accessToken = jwtHelper.generateToken(jwtPayload, config.jwt_access_secret as string, config.jwt_access_expire as string);
     const refreshToken = jwtHelper.generateToken(jwtPayload, config.jwt_refresh_secret as string, config.jwt_refresh_expire as string);
 
-    const { password, ...userWithoutPassword } = createdUser.toObject();
+    const userObject = createdUser.toObject();
+    const { password: pwd, verificationToken: vToken, verificationExpiry: vExpiry, ...userWithoutSensitive } = userObject;
 
-    return { user: userWithoutPassword, accessToken, refreshToken };
+    return { user: userWithoutSensitive, accessToken, refreshToken };
 };
 
 const loginUser = async (data: { email: string; password: string }) => {
