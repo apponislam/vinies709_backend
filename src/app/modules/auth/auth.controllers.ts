@@ -47,6 +47,18 @@ const login = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const verifyEmail = catchAsync(async (req: Request, res: Response) => {
+    const { token, email } = req.query;
+    await authServices.verifyEmail(token as string, email as string);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Email verified successfully",
+        data: null,
+    });
+});
+
 const getMe = catchAsync(async (req: Request, res: Response) => {
     const user = await authServices.getUserById(req.user._id);
 
@@ -174,6 +186,7 @@ const setUserPassword = catchAsync(async (req: Request, res: Response) => {
 export const authControllers = {
     register,
     login,
+    verifyEmail,
     getMe,
     logout,
     refreshAccessToken,

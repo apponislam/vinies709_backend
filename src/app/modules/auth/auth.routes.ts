@@ -8,6 +8,7 @@ const router = Router();
 // Public routes
 router.post("/register", validateRequest(registerSchema), authControllers.register);
 router.post("/login", validateRequest(loginSchema), authControllers.login);
+router.get("/verify-email", authControllers.verifyEmail);
 router.post("/refresh-token", authControllers.refreshAccessToken);
 router.post("/forgot-password", authControllers.requestPasswordReset);
 router.post("/verify-otp", authControllers.verifyOtp);
