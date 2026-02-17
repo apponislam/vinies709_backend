@@ -1,21 +1,3 @@
-// export type UserRole = "VENDOR" | "BUYER" | "DRIVER" | "INVENTORY_MANAGER" | "PRICER" | "TREASURER" | "MANAGER" | "CLIENT" | "SALES_AGENT";
-
-// export interface User {
-//     id: string;
-//     email: string;
-//     password: string;
-//     firstName: string;
-//     lastName: string;
-//     role: UserRole;
-//     phone?: string;
-//     location?: string;
-//     isActive: boolean;
-//     createdAt: Date;
-//     updatedAt: Date;
-//     lastLogin?: Date;
-// }
-
-// user.interface.ts
 export type UserRole = "VENDOR" | "BUYER" | "DRIVER" | "INVENTORY_MANAGER" | "PRICER" | "TREASURER" | "MANAGER" | "CLIENT" | "SALES_AGENT";
 
 export interface User {

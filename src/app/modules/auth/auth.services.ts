@@ -5,6 +5,7 @@ import config from "../../config";
 import { UserModel } from "./auth.model";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { sendOtpEmail } from "../../../utils/emailTemplates";
 
 const registerUser = async (data: any) => {
     // Check existing user
@@ -166,8 +167,8 @@ const resendOtp = async (email: string) => {
     user.resetPasswordOtpExpiry = otpExpiry;
     await user.save();
 
-    // TODO: Send OTP via email
-    console.log(`New OTP for ${email}: ${otp}`);
+    // Send email
+    sendOtpEmail(email, otp, user.firstName as string);
 
     return { message: "OTP resent" };
 };
